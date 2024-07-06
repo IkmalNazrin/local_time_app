@@ -56,7 +56,7 @@ fun LocalTimeScreen() {
 
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5000/") // Ensure this points to your Flask server
+            .baseUrl("https://local-time-project.onrender.com/") // Update to your Render URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
