@@ -5,7 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,11 +16,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,71 +85,40 @@ fun LocalTimeScreen() {
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition()
-    val animatedAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color.Black, Color.DarkGray)
-                )
-            )
-            .padding(horizontal = 16.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(Color.Black)
     ) {
-        Text(
-            text = "Local Time App",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Cyan,
-            modifier = Modifier.alpha(animatedAlpha)
+        Image(
+            painter = painterResource(id = R.drawable.background_image),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
         )
 
-        Card(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .shadow(8.dp, RoundedCornerShape(10.dp)),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = currentTime.value,
-                    fontSize = 56.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Cyan,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Current Local Time",
-                    fontSize = 18.sp,
-                    color = Color.LightGray,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (showTable && fetchedTimes.value.isNotEmpty()) {
+            Text(
+                text = "Local Time App",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Cyan,
+                fontFamily = FontFamily.SansSerif,
+                modifier = Modifier.padding(16.dp)
+            )
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                    .padding(vertical = 8.dp)
                     .shadow(8.dp, RoundedCornerShape(10.dp)),
                 colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
             ) {
@@ -157,191 +128,232 @@ fun LocalTimeScreen() {
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Text(
+                        text = currentTime.value,
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Cyan,
+                        fontFamily = FontFamily.SansSerif,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Current Local Time",
+                        fontSize = 18.sp,
+                        color = Color.LightGray,
+                        fontFamily = FontFamily.SansSerif,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+            }
+
+            if (showTable && fetchedTimes.value.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .shadow(8.dp, RoundedCornerShape(10.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Server Status",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.LightGray,
+                                fontFamily = FontFamily.SansSerif,
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                            IconButton(
+                                onClick = { showTable = false },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close",
+                                    tint = Color.Cyan
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.DarkGray.copy(alpha = 0.7f))
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "ID",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.LightGray,
+                                fontFamily = FontFamily.SansSerif,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "Time",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.LightGray,
+                                fontFamily = FontFamily.SansSerif,
+                                modifier = Modifier.weight(2f)
+                            )
+                        }
+                        Divider(color = Color.LightGray)
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            items(fetchedTimes.value.size) { index ->
+                                val timeResponse = fetchedTimes.value[index]
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "${timeResponse.id}",
+                                        fontSize = 18.sp,
+                                        color = Color.Cyan,
+                                        fontFamily = FontFamily.SansSerif,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Column(modifier = Modifier.weight(2f)) {
+                                        Text(
+                                            text = timeResponse.local_time.split(" ")[0],
+                                            fontSize = 18.sp,
+                                            color = Color.Cyan,
+                                            fontFamily = FontFamily.SansSerif
+                                        )
+                                        Text(
+                                            text = timeResponse.local_time.split(" ")[1],
+                                            fontSize = 18.sp,
+                                            color = Color.Cyan,
+                                            fontFamily = FontFamily.SansSerif
+                                        )
+                                    }
+                                }
+                                Divider(color = Color.DarkGray)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!showTable || fetchedTimes.value.isEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .shadow(8.dp, RoundedCornerShape(10.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "Server Status",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.LightGray,
-                            modifier = Modifier.align(Alignment.CenterVertically)
+                            fontFamily = FontFamily.SansSerif,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
-                        IconButton(
-                            onClick = { showTable = false },
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = Color.Cyan
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // Header Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.DarkGray)
-                            .padding(vertical = 8.dp)
-                    ) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "ID",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.LightGray,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = "Time",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.LightGray,
-                            modifier = Modifier.weight(2f)
+                            text = serverStatus,
+                            fontSize = 20.sp,
+                            color = Color.Cyan,
+                            fontFamily = FontFamily.SansSerif,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     }
-                    Divider(color = Color.LightGray)
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(fetchedTimes.value.size) { index ->
-                            val timeResponse = fetchedTimes.value[index]
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp, horizontal = 4.dp)
-                            ) {
-                                Text(
-                                    text = "${timeResponse.id}",
-                                    fontSize = 18.sp,
-                                    color = Color.Cyan,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Column(modifier = Modifier.weight(2f)) {
-                                    Text(
-                                        text = timeResponse.local_time.split(" ")[0],
-                                        fontSize = 18.sp,
-                                        color = Color.Cyan
-                                    )
-                                    Text(
-                                        text = timeResponse.local_time.split(" ")[1],
-                                        fontSize = 18.sp,
-                                        color = Color.Cyan
-                                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp)
+            ) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isLoading = true
+                            try {
+                                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                sdf.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
+                                val currentTime = sdf.format(Date())
+                                Log.d("LocalTimeApp", "Sending time: $currentTime")
+                                val response = apiService.sendLocalTime(TimeRequest(currentTime))
+                                serverStatus = "Time sent: $currentTime"
+                                Log.d("LocalTimeApp", "Response: Time sent successfully")
+                            } catch (e: Exception) {
+                                serverStatus = "Error: ${e.message}"
+                                Log.e("LocalTimeApp", "Error sending time: ${e.message}", e)
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
+                            } finally {
+                                isLoading = false
                             }
-                            Divider(color = Color.DarkGray)
                         }
-                    }
-                }
-            }
-        }
-
-        if (!showTable || fetchedTimes.value.isEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-                    .shadow(8.dp, RoundedCornerShape(10.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
-            ) {
-                Column(
+                    },
+                    enabled = !isLoading,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
                     modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 ) {
-                    Text(
-                        text = "Server Status",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.LightGray,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = serverStatus,
-                        fontSize = 20.sp,
-                        color = Color.Cyan,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    Text("Send Local Time", color = Color.Black)
+                }
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isLoading = true
+                            try {
+                                val response = apiService.getLocalTimes()
+                                fetchedTimes.value = response
+                                showTable = true
+                                serverStatus = "Fetched ${response.size} times"
+                                Log.d("LocalTimeApp", "Response: $serverStatus")
+                            } catch (e: Exception) {
+                                serverStatus = "Error: ${e.message}"
+                                Log.e("LocalTimeApp", "Error fetching times: ${e.message}", e)
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text("Fetch Local Times", color = Color.Black)
                 }
             }
-        }
 
-        Column(
-            modifier = Modifier.padding(horizontal = 24.dp)
-        ) {
-            Button(
-                onClick = {
-                    scope.launch {
-                        isLoading = true
-                        try {
-                            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                            sdf.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
-                            val currentTime = sdf.format(Date())
-                            Log.d("LocalTimeApp", "Sending time: $currentTime")
-                            val response = apiService.sendLocalTime(TimeRequest(currentTime))
-                            serverStatus = "Time sent: $currentTime"
-                            Log.d("LocalTimeApp", "Response: Time sent successfully")
-                        } catch (e: Exception) {
-                            serverStatus = "Error: ${e.message}"
-                            Log.e("LocalTimeApp", "Error sending time: ${e.message}", e)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                            }
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                },
-                enabled = !isLoading,
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text("Send Local Time", color = Color.Black)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = Color.Cyan,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
-            Button(
-                onClick = {
-                    scope.launch {
-                        isLoading = true
-                        try {
-                            val response = apiService.getLocalTimes()
-                            fetchedTimes.value = response
-                            showTable = true
-                            serverStatus = "Fetched ${response.size} times"
-                            Log.d("LocalTimeApp", "Response: $serverStatus")
-                        } catch (e: Exception) {
-                            serverStatus = "Error: ${e.message}"
-                            Log.e("LocalTimeApp", "Error fetching times: ${e.message}", e)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                            }
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                },
-                enabled = !isLoading,
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text("Fetch Local Times", color = Color.Black)
-            }
-        }
-
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = Color.Cyan,
-                modifier = Modifier.padding(16.dp)
-            )
         }
     }
 }
