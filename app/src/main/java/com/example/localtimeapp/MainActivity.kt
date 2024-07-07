@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
 fun LocalTimeScreen() {
     var serverTime by remember { mutableStateOf("Tap to send local time") }
     var isLoading by remember { mutableStateOf(false) }
+    var localTimes by remember { mutableStateOf<List<String>>(emptyList()) }
     val currentTime = remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -107,7 +108,7 @@ fun LocalTimeScreen() {
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Cyan,
-            modifier = Modifier.alpha(animatedAlpha) // Add blinking effect
+            modifier = Modifier.alpha(animatedAlpha)
         )
 
         Card(
@@ -200,7 +201,53 @@ fun LocalTimeScreen() {
                 ) {
                     Text("Send Local Time", color = Color.Black)
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isLoading = true
+                            try {
+                                val times = apiService.getLocalTimes()
+                                localTimes = times.map { it.message }
+                            } catch (e: Exception) {
+                                Log.e("LocalTimeApp", "Error fetching times", e)
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "Error fetching times: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Text("Fetch Local Times", color = Color.Black)
+                }
+            }
+        }
 
+        if (localTimes.isNotEmpty()) {
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Text(
+                    text = "Stored Local Times:",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Cyan,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                localTimes.forEach { time ->
+                    Text(
+                        text = time,
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
         }
 
