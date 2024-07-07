@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
 fun LocalTimeScreen() {
     var serverTime by remember { mutableStateOf("Tap to send local time") }
     var isLoading by remember { mutableStateOf(false) }
-    var localTimes by remember { mutableStateOf<List<String>>(emptyList()) }
     val currentTime = remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -63,10 +62,11 @@ fun LocalTimeScreen() {
             .addConverterFactory(GsonConverterFactory.create())
             .client(
                 OkHttpClient.Builder()
-                    .connectTimeout(10, TimeUnit.SECONDS)
-                    .readTimeout(10, TimeUnit.SECONDS)
-                    .writeTimeout(10, TimeUnit.SECONDS)
-                    .build())
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .build()
+            )
             .build()
     }
 
@@ -180,7 +180,7 @@ fun LocalTimeScreen() {
                                 Log.d("LocalTimeApp", "Sending time: $currentTime")
                                 val response = apiService.sendLocalTime(TimeRequest(currentTime))
                                 serverTime = "Time sent: $currentTime"
-                                Log.d("LocalTimeApp", "Response: ${response.message}")
+                                Log.d("LocalTimeApp", "Response: $response")
                             } catch (e: Exception) {
                                 serverTime = "Error: ${e.message}"
                                 Log.e("LocalTimeApp", "Error sending time", e)
@@ -207,12 +207,14 @@ fun LocalTimeScreen() {
                         scope.launch {
                             isLoading = true
                             try {
-                                val times = apiService.getLocalTimes()
-                                localTimes = times.map { it.message }
+                                val response = apiService.getLocalTimes()
+                                serverTime = response.joinToString("\n") { it.local_time }
+                                Log.d("LocalTimeApp", "Response: ${response.joinToString { it.local_time }}")
                             } catch (e: Exception) {
+                                serverTime = "Error: ${e.message}"
                                 Log.e("LocalTimeApp", "Error fetching times", e)
                                 withContext(Dispatchers.Main) {
-                                    Toast.makeText(context, "Error fetching times: ${e.message}", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
                             } finally {
                                 isLoading = false
@@ -227,26 +229,6 @@ fun LocalTimeScreen() {
                         .padding(horizontal = 24.dp)
                 ) {
                     Text("Fetch Local Times", color = Color.Black)
-                }
-            }
-        }
-
-        if (localTimes.isNotEmpty()) {
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                Text(
-                    text = "Stored Local Times:",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Cyan,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                localTimes.forEach { time ->
-                    Text(
-                        text = time,
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
                 }
             }
         }
