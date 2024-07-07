@@ -25,10 +25,12 @@ import com.example.localtimeapp.ui.theme.LocalTimeAppTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,8 +58,14 @@ fun LocalTimeScreen() {
 
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://local-time-project.onrender.com/") // Update to your Render URL
+            .baseUrl("https://local-time-project.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
+            .client(
+                OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .build())
             .build()
     }
 
@@ -168,9 +176,10 @@ fun LocalTimeScreen() {
                                 val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                                 sdf.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
                                 val currentTime = sdf.format(Date())
+                                Log.d("LocalTimeApp", "Sending time: $currentTime")
                                 val response = apiService.sendLocalTime(TimeRequest(currentTime))
                                 serverTime = "Time sent: $currentTime"
-                                Log.d("LocalTimeApp", "Sent time: $currentTime")
+                                Log.d("LocalTimeApp", "Response: ${response.message}")
                             } catch (e: Exception) {
                                 serverTime = "Error: ${e.message}"
                                 Log.e("LocalTimeApp", "Error sending time", e)
@@ -191,6 +200,7 @@ fun LocalTimeScreen() {
                 ) {
                     Text("Send Local Time", color = Color.Black)
                 }
+
             }
         }
 

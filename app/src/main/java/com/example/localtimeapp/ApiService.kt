@@ -1,7 +1,7 @@
 package com.example.localtimeapp
 
-import retrofit2.http.POST
 import retrofit2.http.Body
+import retrofit2.http.POST
 
 interface ApiService {
     @POST("api/localtime")
