@@ -26,11 +26,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.security.cert.CertificateException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +53,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LocalTimeScreen() {
-    var serverTime by remember { mutableStateOf("Tap to send local time") }
+    var serverStatus by remember { mutableStateOf("Tap to send local time") }
     var isLoading by remember { mutableStateOf(false) }
     val currentTime = remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
@@ -60,13 +63,7 @@ fun LocalTimeScreen() {
         Retrofit.Builder()
             .baseUrl("https://local-time-project.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
-            .client(
-                OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .build()
-            )
+            .client(getUnsafeOkHttpClient())
             .build()
     }
 
@@ -163,7 +160,7 @@ fun LocalTimeScreen() {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = serverTime,
+                    text = serverStatus,
                     fontSize = 20.sp,
                     color = Color.Cyan,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -179,11 +176,11 @@ fun LocalTimeScreen() {
                                 val currentTime = sdf.format(Date())
                                 Log.d("LocalTimeApp", "Sending time: $currentTime")
                                 val response = apiService.sendLocalTime(TimeRequest(currentTime))
-                                serverTime = "Time sent: $currentTime"
-                                Log.d("LocalTimeApp", "Response: $response")
+                                serverStatus = "Time sent: $currentTime"
+                                Log.d("LocalTimeApp", "Response: Time sent successfully")
                             } catch (e: Exception) {
-                                serverTime = "Error: ${e.message}"
-                                Log.e("LocalTimeApp", "Error sending time", e)
+                                serverStatus = "Error: ${e.message}"
+                                Log.e("LocalTimeApp", "Error sending time: ${e.message}", e)
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
@@ -208,11 +205,11 @@ fun LocalTimeScreen() {
                             isLoading = true
                             try {
                                 val response = apiService.getLocalTimes()
-                                serverTime = response.joinToString("\n") { it.local_time }
-                                Log.d("LocalTimeApp", "Response: ${response.joinToString { it.local_time }}")
+                                serverStatus = response.joinToString("\n") { "ID: ${it.id}, Time: ${it.local_time}" }
+                                Log.d("LocalTimeApp", "Response: $serverStatus")
                             } catch (e: Exception) {
-                                serverTime = "Error: ${e.message}"
-                                Log.e("LocalTimeApp", "Error fetching times", e)
+                                serverStatus = "Error: ${e.message}"
+                                Log.e("LocalTimeApp", "Error fetching times: ${e.message}", e)
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
@@ -239,5 +236,43 @@ fun LocalTimeScreen() {
                 modifier = Modifier.padding(16.dp)
             )
         }
+    }
+}
+
+fun getUnsafeOkHttpClient(): OkHttpClient {
+    val logging = HttpLoggingInterceptor()
+    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+    return try {
+        val trustAllCerts = arrayOf<TrustManager>(
+            object : X509TrustManager {
+                @Throws(CertificateException::class)
+                override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
+                }
+
+                @Throws(CertificateException::class)
+                override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
+                }
+
+                override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> {
+                    return arrayOf()
+                }
+            }
+        )
+
+        val sslContext = SSLContext.getInstance("SSL")
+        sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+
+        val sslSocketFactory = sslContext.socketFactory
+
+        val builder = OkHttpClient.Builder()
+        builder.sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
+        builder.hostnameVerifier { _, _ -> true }
+        builder.addInterceptor(logging)
+        builder.connectTimeout(30, TimeUnit.SECONDS)
+        builder.readTimeout(30, TimeUnit.SECONDS)
+        builder.writeTimeout(30, TimeUnit.SECONDS)
+        builder.build()
+    } catch (e: Exception) {
+        throw RuntimeException(e)
     }
 }

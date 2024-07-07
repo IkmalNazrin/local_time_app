@@ -74,6 +74,10 @@ dependencies {
     // Firebase SDK
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-analytics-ktx")
+
+    // Retrofit and OkHttp dependencies
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
 }
 
 // Apply the Google services plugin
