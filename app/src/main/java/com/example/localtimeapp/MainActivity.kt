@@ -181,6 +181,29 @@ fun LocalTimeScreen() {
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
+                    // Header Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.DarkGray)
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "ID",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.LightGray,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "Time",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.LightGray,
+                            modifier = Modifier.weight(2f)
+                        )
+                    }
+                    Divider(color = Color.LightGray)
                     LazyColumn(modifier = Modifier.fillMaxWidth()) {
                         items(fetchedTimes.value.size) { index ->
                             val timeResponse = fetchedTimes.value[index]
@@ -190,18 +213,25 @@ fun LocalTimeScreen() {
                                     .padding(vertical = 8.dp, horizontal = 4.dp)
                             ) {
                                 Text(
-                                    text = "ID: ${timeResponse.id}",
+                                    text = "${timeResponse.id}",
                                     fontSize = 18.sp,
                                     color = Color.Cyan,
                                     modifier = Modifier.weight(1f)
                                 )
-                                Text(
-                                    text = "Time: ${timeResponse.local_time}",
-                                    fontSize = 18.sp,
-                                    color = Color.Cyan,
-                                    modifier = Modifier.weight(2f)
-                                )
+                                Column(modifier = Modifier.weight(2f)) {
+                                    Text(
+                                        text = timeResponse.local_time.split(" ")[0],
+                                        fontSize = 18.sp,
+                                        color = Color.Cyan
+                                    )
+                                    Text(
+                                        text = timeResponse.local_time.split(" ")[1],
+                                        fontSize = 18.sp,
+                                        color = Color.Cyan
+                                    )
+                                }
                             }
+                            Divider(color = Color.DarkGray)
                         }
                     }
                 }
@@ -240,69 +270,71 @@ fun LocalTimeScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                scope.launch {
-                    isLoading = true
-                    try {
-                        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                        sdf.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
-                        val currentTime = sdf.format(Date())
-                        Log.d("LocalTimeApp", "Sending time: $currentTime")
-                        val response = apiService.sendLocalTime(TimeRequest(currentTime))
-                        serverStatus = "Time sent: $currentTime"
-                        Log.d("LocalTimeApp", "Response: Time sent successfully")
-                    } catch (e: Exception) {
-                        serverStatus = "Error: ${e.message}"
-                        Log.e("LocalTimeApp", "Error sending time: ${e.message}", e)
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                        }
-                    } finally {
-                        isLoading = false
-                    }
-                }
-            },
-            enabled = !isLoading,
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp)
         ) {
-            Text("Send Local Time", color = Color.Black)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                scope.launch {
-                    isLoading = true
-                    try {
-                        val response = apiService.getLocalTimes()
-                        fetchedTimes.value = response
-                        showTable = true
-                        serverStatus = "Fetched ${response.size} times"
-                        Log.d("LocalTimeApp", "Response: $serverStatus")
-                    } catch (e: Exception) {
-                        serverStatus = "Error: ${e.message}"
-                        Log.e("LocalTimeApp", "Error fetching times: ${e.message}", e)
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Button(
+                onClick = {
+                    scope.launch {
+                        isLoading = true
+                        try {
+                            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                            sdf.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
+                            val currentTime = sdf.format(Date())
+                            Log.d("LocalTimeApp", "Sending time: $currentTime")
+                            val response = apiService.sendLocalTime(TimeRequest(currentTime))
+                            serverStatus = "Time sent: $currentTime"
+                            Log.d("LocalTimeApp", "Response: Time sent successfully")
+                        } catch (e: Exception) {
+                            serverStatus = "Error: ${e.message}"
+                            Log.e("LocalTimeApp", "Error sending time: ${e.message}", e)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        } finally {
+                            isLoading = false
                         }
-                    } finally {
-                        isLoading = false
                     }
-                }
-            },
-            enabled = !isLoading,
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-        ) {
-            Text("Fetch Local Times", color = Color.Black)
+                },
+                enabled = !isLoading,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text("Send Local Time", color = Color.Black)
+            }
+            Button(
+                onClick = {
+                    scope.launch {
+                        isLoading = true
+                        try {
+                            val response = apiService.getLocalTimes()
+                            fetchedTimes.value = response
+                            showTable = true
+                            serverStatus = "Fetched ${response.size} times"
+                            Log.d("LocalTimeApp", "Response: $serverStatus")
+                        } catch (e: Exception) {
+                            serverStatus = "Error: ${e.message}"
+                            Log.e("LocalTimeApp", "Error fetching times: ${e.message}", e)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        } finally {
+                            isLoading = false
+                        }
+                    }
+                },
+                enabled = !isLoading,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text("Fetch Local Times", color = Color.Black)
+            }
         }
 
         if (isLoading) {
@@ -313,9 +345,6 @@ fun LocalTimeScreen() {
         }
     }
 }
-
-
-
 
 fun getUnsafeOkHttpClient(): OkHttpClient {
     val logging = HttpLoggingInterceptor()
