@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "663929044496",
+    "project_id": "localtimeproject",
+    "storage_bucket": "localtimeproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663929044496:android:27d8b99f320a85e1c15495",
+        "android_client_info": {
+          "package_name": "com.example.localtimeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqPkD3c3fDh9dUGwvzG4epejW4jYvbjg4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
